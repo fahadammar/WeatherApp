@@ -6,6 +6,8 @@ import android.os.AsyncTask
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import org.json.JSONArray
+import org.json.JSONObject
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStream
@@ -162,7 +164,14 @@ class DemoActivity : AppCompatActivity() {
             super.onPostExecute(result)
             cancelDialog()
 
-            Log.i("JSON Response Result", result)
+            //Log.i("JSON Response Result", result)
+
+            // Follow the Link -> https://www.baeldung.com/java-org-json
+            // The passed String argument must be a valid JSON; otherwise, this constructor may throw a JSONException.
+            var jsonObject = JSONObject(result)
+
+            // Calling this function to log the JSON values which we get from the web.
+            logJSON(jsonObject)
         }
 
         // The function to show the Dialog
@@ -174,6 +183,42 @@ class DemoActivity : AppCompatActivity() {
         // The function to cancel the Dialog
         private fun cancelDialog() {
             waitProgressDialog.cancel()
+        }
+
+        // This function is to Log The Get JSON object values using Keys
+        private fun logJSON(json : JSONObject){
+            // getting the value via keys - optValueTypes the value types vary accordingly
+            val message = json.optString("message") // string value type
+            val user_id = json.optInt("user_id") // int value type
+            val email = json.optString("email") // string value type
+            val mobile = json.optInt("mobile") // int value type
+            val profileObj = json.optJSONObject("profile_details") // object value type
+            val profileKey_profileCompleter = profileObj.optBoolean("is_profile_completed") // boolean type
+            val profileKey_rating = profileObj.optInt("rating") // int type
+            val jsonArray = json.optJSONArray("data_list") // array to say - value type
+
+            Log.i("JSON", "Message: $message")
+            Log.i("JSON", "User_ID: $user_id")
+            Log.i("JSON", "Email: $email")
+            Log.i("JSON", "Mobile: $mobile")
+            Log.i("JSON", "ProfileObj-ProfileCompleter: ${profileKey_profileCompleter}")
+            Log.i("JSON", "ProfileObj-ProfileRating: ${profileKey_rating}")
+
+
+
+            // calling the function to Log JSONArray
+            logJSONArray(jsonArray)
+        }
+
+        // This function is to log the JSONArray
+        private fun logJSONArray(jsonArray : JSONArray){
+            // the JSONArray have JSON or to say objects
+            for(item in 0 until jsonArray.length()){
+                val arrayObj : JSONObject = jsonArray[item] as JSONObject
+
+                Log.i("JSON-Loop", "ID: ${arrayObj.optInt("id")}")
+                Log.i("JSON-Loop", "Value: ${arrayObj.optInt("value")}")
+            }
         }
     }
 
