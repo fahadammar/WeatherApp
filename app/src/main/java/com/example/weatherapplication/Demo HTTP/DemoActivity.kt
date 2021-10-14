@@ -6,12 +6,12 @@ import android.os.AsyncTask
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.widget.Toast
+import com.example.weatherapplication.Model.ResponseModel
+import com.google.gson.Gson
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.BufferedReader
-import java.io.IOException
-import java.io.InputStream
-import java.io.InputStreamReader
+import java.io.*
 import java.lang.StringBuilder
 import java.net.HttpURLConnection
 import java.net.SocketTimeoutException
@@ -22,10 +22,10 @@ class DemoActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_demo)
 
-        CallApiLoginAsyncTask().execute()
+        CallApiLoginAsyncTask("denis", "1245").execute()
     }
 
-    private inner class CallApiLoginAsyncTask() : AsyncTask<Any, Void, String>() {
+    private inner class CallApiLoginAsyncTask(val username: String, val password: String) : AsyncTask<Any, Void, String>() {
 
         private lateinit var waitProgressDialog : Dialog
 
@@ -66,6 +66,73 @@ class DemoActivity : AppCompatActivity() {
                  */
                 connection.doInput = true // to get data
                 connection.doOutput = true // to send data
+
+                /**
+                 * Sets whether HTTP redirects should be automatically followed by this instance.
+                 * The default value comes from followRedirects, which defaults to true.
+                 */
+                connection.instanceFollowRedirects = false
+
+                /**
+                 * Set the method for the URL request, one of:
+                 *  GET
+                 *  POST
+                 *  HEAD
+                 *  OPTIONS
+                 *  PUT
+                 *  DELETE
+                 *  TRACE
+                 *  are legal, subject to protocol restrictions.  The default method is GET.
+                 */
+                connection.requestMethod = "POST"
+
+                /**
+                 * Sets the general request property. If a property with the key already
+                 * exists, overwrite its value with the new value.
+                 * connection.setRequestProperty(key, value)
+                 */
+                connection.setRequestProperty("Content-Type", "application/json")
+                connection.setRequestProperty("charset", "utf-8")
+                connection.setRequestProperty("Accept", "application/json")
+
+
+                /**
+                 * Some protocols do caching of documents.  Occasionally, it is important
+                 * to be able to "tunnel through" and ignore the caches (e.g., the
+                 * "reload" button in a browser).  If the UseCaches flag on a connection
+                 * is true, the connection is allowed to use whatever caches it can.
+                 *  If false, caches are to be ignored.
+                 *  The default value comes from DefaultUseCaches, which defaults to
+                 * true.
+                 */
+                connection.useCaches = false
+
+
+                /**
+                 * OutputStream is an abstract class that represents writing output.
+                 * There are many different OutputStream classes, and they write out to certain things (like the screen, or Files, or byte arrays, or network connections, or etc).
+                 * InputStream classes access the same things, but they read data in from them.
+                 * Creates a new data output stream to write data to the specified
+                 * underlying output stream. The counter written is set to zero.
+                 */
+                var writeStream = DataOutputStream(connection.outputStream)
+
+                // create JSON Object
+                var jsonPost = JSONObject()
+                jsonPost.put("username", username)
+                jsonPost.put("password", password)
+
+                /**
+                 * Writes out the string to the underlying output stream as a
+                 * sequence of bytes. Each character in the string is written out, in
+                 * sequence, by discarding its high eight bits. If no exception is
+                 * thrown, the counter written is incremented by the
+                 * length of s.
+                 */
+                writeStream.writeBytes(jsonPost.toString())
+                writeStream.flush() // Flushes this data output stream.
+                // Closes this output stream and releases any system resources associated with the stream
+                writeStream.close()
 
                 // Here we are storing the response code we get from the HTTP response
                 val httpResponseCode : Int = connection.responseCode
@@ -170,8 +237,14 @@ class DemoActivity : AppCompatActivity() {
             // The passed String argument must be a valid JSON; otherwise, this constructor may throw a JSONException.
             var jsonObject = JSONObject(result)
 
+            // Map the json response with the Data Class using GSON.
+            var responseData = Gson().fromJson(result, ResponseModel::class.java)
+
             // Calling this function to log the JSON values which we get from the web.
-            logJSON(jsonObject)
+            logGson(responseData)
+
+            // Calling this function to log the JSON values which we get from the web.
+            //logJSON(jsonObject)
         }
 
         // The function to show the Dialog
@@ -186,6 +259,7 @@ class DemoActivity : AppCompatActivity() {
         }
 
         // This function is to Log The Get JSON object values using Keys
+        // This is the Old Way - The new way is Using is Gson
         private fun logJSON(json : JSONObject){
             // getting the value via keys - optValueTypes the value types vary accordingly
             val message = json.optString("message") // string value type
@@ -208,6 +282,30 @@ class DemoActivity : AppCompatActivity() {
 
             // calling the function to Log JSONArray
             logJSONArray(jsonArray)
+        }
+
+        private fun logGson(responseModel : ResponseModel) {
+            Log.i("Message", responseModel.message)
+            Log.i("User Id", "${responseModel.user_id}")
+            Log.i("Name", responseModel.name)
+            Log.i("Email", responseModel.email)
+            Log.i("Mobile", "${responseModel.mobile}")
+
+            // Profile Details
+            Log.i("Is Profile Completed", "${responseModel.profile_details.is_profile_completed}")
+            Log.i("Rating", "${responseModel.profile_details.rating}")
+
+            // Data List Details.
+            Log.i("Data List Size", "${responseModel.data_list.size}")
+
+            for (item in responseModel.data_list.indices) {
+                Log.i("Value $item", "${responseModel.data_list[item]}")
+
+                Log.i("ID", "${responseModel.data_list[item].id}")
+                Log.i("Value", "${responseModel.data_list[item].value}")
+            }
+
+            Toast.makeText(this@DemoActivity, responseModel.message, Toast.LENGTH_SHORT).show()
         }
 
         // This function is to log the JSONArray
