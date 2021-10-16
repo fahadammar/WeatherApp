@@ -6,6 +6,7 @@ import android.location.LocationManager
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.view.View
 import android.widget.Toast
 
@@ -32,14 +33,14 @@ class MainActivity : AppCompatActivity() {
     fun isLocationEnabled() : Boolean {
         // This provides access to the system location services
         val locationManager : LocationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
-        return locationManager.isProviderEnabled( LocationManager.GPS_PROVIDER )
-                || locationManager.isProviderEnabled( LocationManager.NETWORK_PROVIDER )
+        return locationManager.isProviderEnabled( LocationManager.GPS_PROVIDER ) || locationManager.isProviderEnabled( LocationManager.NETWORK_PROVIDER )
     }
 
 
     // this is the OnClick function for the Test Demo Button
     fun testDemoClick(view: View) {
-        val intent = Intent(this, DemoActivity::class.java)
-        startActivity(intent)
+        Log.i("PermissionCheck", isLocationEnabled().toString())
+        //val intent = Intent(this, DemoActivity::class.java)
+        //startActivity(intent)
     }
 }
