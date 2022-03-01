@@ -2,6 +2,7 @@ package com.example.weatherapplication
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Dialog
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
@@ -34,12 +35,16 @@ class MainActivity : AppCompatActivity() {
     // A fused location client variable which is further used to get the user's current location
     private lateinit var mFusedLocationClient: FusedLocationProviderClient
 
+    private var customProgressDialog : Dialog? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         // Initialize the Fused location variable
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
+
+        // Custom Progress Dialog
 
         if(!isLocationEnabled()){
             Toast.makeText(this,
@@ -101,12 +106,16 @@ class MainActivity : AppCompatActivity() {
 
             val listCall : Call<WeatherResponse> = service.getWeather(latittude, longitutde, Constants.METRIC_UNIT, Constants.APP_KEY)
 
+            showCustomProgressDialog()
+
             listCall.enqueue(object : Callback<WeatherResponse>{
                 override fun onResponse(
                     call: Call<WeatherResponse>,
                     response: Response<WeatherResponse>
                 ) {
                     if(response.isSuccessful){
+                        hideProgressDialog()
+
                         val weatherList : WeatherResponse? = response.body()
                         Log.i("responseResult", "$weatherList")
                     }
@@ -127,6 +136,7 @@ class MainActivity : AppCompatActivity() {
                 }
 
                 override fun onFailure(call: Call<WeatherResponse>, t: Throwable) {
+                    hideProgressDialog()
                     Log.e("Error", t!!.message.toString())
                 }
 
@@ -176,6 +186,24 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+
+    // Show Custom Progress Dialog
+    private fun showCustomProgressDialog(){
+        customProgressDialog = Dialog(this)
+        /**
+         * Set the screen content from a layout resource. The resource will be inflated, add all top level
+         * views to the screen
+         * */
+        customProgressDialog!!.setContentView(R.layout.custom_dialog_progress)
+
+        customProgressDialog!!.show()
+    }
+    // Hide Custom Progress Dialog
+    private fun hideProgressDialog() {
+        if(customProgressDialog != null){
+            customProgressDialog!!.dismiss()
+        }
+    }
 
     /**
      * A location callback object of fused location provider client where we will get the current location details.

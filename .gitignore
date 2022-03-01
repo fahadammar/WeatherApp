@@ -13,4 +13,5 @@
 .externalNativeBuild
 .cxx
 local.properties
-/utility/KeyObj.kt
+
+app/src/main/java/com/example/utility/KeyObj.kt
