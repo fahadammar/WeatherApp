@@ -108,6 +108,7 @@ class MainActivity : AppCompatActivity() {
                 ) {
                     if(response.isSuccessful){
                         val weatherList : WeatherResponse? = response.body()
+                        Log.i("responseResult", "$weatherList")
                     }
                     else
                     {
@@ -116,7 +117,7 @@ class MainActivity : AppCompatActivity() {
                                Log.e("Error 400", "Bad Connection")
                            }
                            404 -> {
-                               Log.e("Error 404", "Content Not Foun!!")
+                               Log.e("Error 404", "Content Not Found!!")
                            }
                            else -> {
                                 Log.e("Error", "Generic Error")

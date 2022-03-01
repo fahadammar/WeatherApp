@@ -9,7 +9,7 @@ import retrofit2.converter.gson.GsonConverterFactory
 
 object Constants {
 
-    const val APP_KEY : String = "3912df4440db227729ab65d4a3686f17"
+    const val APP_KEY : String = KeyObj.KEY_OF_API
     const val BASE_URL : String = "http://api.openweathermap.org/data/"
     const val METRIC_UNIT : String = "metric"
 
