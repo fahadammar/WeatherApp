@@ -16,12 +16,18 @@ import android.util.Log
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import com.example.API_Models.WeatherResponse
+import com.example.Network.WeatherServiceInterface
+import com.example.utility.Constants
 import com.google.android.gms.location.*
 import com.karumi.dexter.Dexter
 import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
 class MainActivity : AppCompatActivity() {
 
@@ -73,7 +79,8 @@ class MainActivity : AppCompatActivity() {
                     ) {
                         showRationalDialogForPermissions()
                     }
-                }).onSameThread()
+                })
+                .onSameThread()
                 .check()
 
         }
@@ -83,6 +90,50 @@ class MainActivity : AppCompatActivity() {
         // This provides access to the system location services
         val locationManager : LocationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
         return locationManager.isProviderEnabled( LocationManager.GPS_PROVIDER ) || locationManager.isProviderEnabled( LocationManager.NETWORK_PROVIDER )
+    }
+
+    private fun getLocationWeatherDetails(latittude : Double, longitutde : Double)
+    {
+        // if we have the internet connection then we get the retrofit object and do the rest of the stuff
+        if(Constants.isNetworkAvailable(this))
+        {
+            val service : WeatherServiceInterface = Constants.returnRetroObject()!!.create<WeatherServiceInterface>(WeatherServiceInterface::class.java)
+
+            val listCall : Call<WeatherResponse> = service.getWeather(latittude, longitutde, Constants.METRIC_UNIT, Constants.APP_KEY)
+
+            listCall.enqueue(object : Callback<WeatherResponse>{
+                override fun onResponse(
+                    call: Call<WeatherResponse>,
+                    response: Response<WeatherResponse>
+                ) {
+                    if(response.isSuccessful){
+                        val weatherList : WeatherResponse? = response.body()
+                    }
+                    else
+                    {
+                        when(response.code()){
+                           400 -> {
+                               Log.e("Error 400", "Bad Connection")
+                           }
+                           404 -> {
+                               Log.e("Error 404", "Content Not Foun!!")
+                           }
+                           else -> {
+                                Log.e("Error", "Generic Error")
+                            }
+                        }
+                    }
+                }
+
+                override fun onFailure(call: Call<WeatherResponse>, t: Throwable) {
+                    Log.e("Error", t!!.message.toString())
+                }
+
+            })
+        }
+        else {
+            Toast.makeText(this, "No the internet is connected", Toast.LENGTH_LONG).show()
+        }
     }
 
     /**
@@ -136,6 +187,7 @@ class MainActivity : AppCompatActivity() {
 
             val longitude = mLastLocation.longitude
             Log.i("Current Longitude", "$longitude")
+            getLocationWeatherDetails(latitude, longitude)
         }
     }
 
