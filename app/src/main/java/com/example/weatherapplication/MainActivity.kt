@@ -15,6 +15,7 @@ import android.os.Looper
 import android.provider.Settings
 import android.util.Log
 import android.view.View
+import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import com.example.API_Models.WeatherResponse
@@ -26,6 +27,7 @@ import com.karumi.dexter.MultiplePermissionsReport
 import com.karumi.dexter.PermissionToken
 import com.karumi.dexter.listener.PermissionRequest
 import com.karumi.dexter.listener.multi.MultiplePermissionsListener
+import org.w3c.dom.Text
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -37,9 +39,17 @@ class MainActivity : AppCompatActivity() {
 
     private var customProgressDialog : Dialog? = null
 
+    lateinit var tv_main : TextView
+    lateinit var tv_main_description : TextView
+    lateinit var tv_temp : TextView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+        tv_main = findViewById(R.id.tv_main)
+        tv_main_description = findViewById(R.id.tv_main_description)
+        tv_temp = findViewById(R.id.tv_temp)
 
         // Initialize the Fused location variable
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
@@ -118,6 +128,8 @@ class MainActivity : AppCompatActivity() {
 
                         val weatherList : WeatherResponse? = response.body()
                         Log.i("responseResult", "$weatherList")
+
+                        setupUI(weatherList!!);
                     }
                     else
                     {
@@ -220,10 +232,21 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // this is the OnClick function for the Test Demo Button
-    fun testDemoClick(view: View) {
-        Log.i("PermissionCheck", isLocationEnabled().toString())
-        //val intent = Intent(this, DemoActivity::class.java)
-        //startActivity(intent)
+    private fun setupUI(weatherList : WeatherResponse){
+        for(i in weatherList.weather.indices){
+            Log.i("weatherName", weatherList.weather.toString())
+
+            tv_main.text = weatherList.weather[i].main
+            tv_main_description.text = weatherList.weather[i].description
+            tv_temp.text = weatherList.main.temp.toString() + getUnit(application.resources.configuration.locales.toString())
+        }
+    }
+
+    private fun getUnit(value : String) : String? {
+        var value = "℃"
+        if("US" == value || "LR" == value || "MM" == value){
+            value = "℉"
+        }
+        return value;
     }
 }
